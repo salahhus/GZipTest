@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj": {}
+    "f:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj": {
+    "f:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj",
+        "projectUniqueName": "f:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj",
         "projectName": "GZipTest",
-        "projectPath": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj",
+        "projectPath": "f:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj",
         "packagesPath": "C:\\Users\\Commod\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\obj\\",
+        "outputPath": "f:\\MyProjects\\VEEAM\\GZipTest\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Commod\\AppData\\Roaming\\NuGet\\NuGet.Config",

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "93Vev1DCsSsW6BgTP562qf1ZygaVf+/VJ7capJpu3Fqh9q/Ocn9WD6w8F9JBr5r4Vc5IYGFCWwUr0Cgr5aVeWg==",
+  "dgSpecHash": "2kxm2vaoZZKdW27dGWdnjQVdPyJDUE0go3D9e9vXjnDlDlKhuRNaSG7gDn/SVFQHz5Uog77CmMMyXLLas6HqpQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj",
+  "projectFilePath": "f:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Commod\\.nuget\\packages\\microsoft.extensions.configuration\\3.1.8\\microsoft.extensions.configuration.3.1.8.nupkg.sha512",
     "C:\\Users\\Commod\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\3.1.8\\microsoft.extensions.configuration.abstractions.3.1.8.nupkg.sha512",
