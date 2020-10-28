@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -10,7 +11,11 @@ namespace GZipTest
 {
     public class CompressingService : ICompressService
     {
-        private readonly Mutex mutex = new Mutex();
+        /// <summary>
+        /// object using for locking multithreads
+        /// </summary>
+        private readonly Object obj = new object();
+
         /// <summary>
         /// Split  file into multiple files
         /// </summary>
@@ -18,23 +23,30 @@ namespace GZipTest
         /// <param name="path"></param>
         public void SplitFile(string inputFile, string path)
         {
-            string getFileName = Path.GetFileNameWithoutExtension(inputFile);
-            string archiveFilePath = path + "\\" + getFileName;
-            Directory.CreateDirectory(archiveFilePath);
-            path = archiveFilePath;
-
-            // get chunkSize from configuration file
-            int chunkSize = int.Parse(Configuration.ConfigurationManager.AppSetting["FileSplitSizeOption"]);
-            using (Stream input = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            try
             {
-                int index = 0;
-                while (input.Position < input.Length)
+                string getFileName = Path.GetFileNameWithoutExtension(inputFile);
+                string archiveFilePath = path + "\\" + getFileName;
+                Directory.CreateDirectory(archiveFilePath);
+                path = archiveFilePath;
+                Console.WriteLine("In progress compressing ..");
+                // get chunkSize from configuration file
+                int chunkSize = int.Parse(Configuration.ConfigurationManager.AppSetting["FileSplitSizeOption"]);
+                using (Stream input = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
                 {
-                    Thread thread = new Thread(() => Compress(input, index, chunkSize, path));
-                    thread.Start();
-                    index++;
-                    Thread.Sleep(500);
+                    int index = 0;
+                    while (input.Position < input.Length)
+                    {
+                        Thread thread = new Thread(() => Compress(input, index, chunkSize, path));
+                        thread.Start();
+                        index++;
+                        Thread.Sleep(500);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
             }
         }
 
@@ -47,48 +59,48 @@ namespace GZipTest
         /// <param name="path"></param>
         public void Compress(Stream input, int index, int chunkSize, string path)
         {
-            try
+            lock (obj)
             {
-                mutex.WaitOne();
-                byte[] buffer = new byte[Constansts.Constants.BUFFER_SIZE];
-                string preparedFilePath = path + "\\" + index;
-                using (Stream output = File.Create(preparedFilePath))
+                try
                 {
-                    int remaining = chunkSize, bytesRead;
-                    while (remaining > 0 && (bytesRead = input.Read(buffer, 0,
-                            Math.Min(remaining, Constansts.Constants.BUFFER_SIZE))) > 0)
+                    byte[] buffer = new byte[Constansts.Constants.BUFFER_SIZE];
+                    string preparedFilePath = path + "\\" + index;
+                    using (Stream output = File.Create(preparedFilePath))
                     {
-                        output.Write(buffer, 0, bytesRead);
-                        remaining -= bytesRead;
-                    }
-                }
-
-                FileInfo fileToCompress = new FileInfo(preparedFilePath);
-                using (FileStream originalFileStream = fileToCompress.OpenRead())
-                {
-                    if ((File.GetAttributes(fileToCompress.FullName) &
-                       FileAttributes.Hidden) != FileAttributes.Hidden & fileToCompress.Extension != ".gz")
-                    {
-                        using (FileStream compressedFileStream = File.Create(fileToCompress.FullName + ".gz"))
+                        int remaining = chunkSize, bytesRead;
+                        while (remaining > 0 && (bytesRead = input.Read(buffer, 0,
+                                Math.Min(remaining, Constansts.Constants.BUFFER_SIZE))) > 0)
                         {
-                            using (GZipStream compressionStream = new GZipStream(compressedFileStream,
-                               CompressionMode.Compress))
+                            output.Write(buffer, 0, bytesRead);
+                            remaining -= bytesRead;
+                        }
+                    }
+
+                    FileInfo fileToCompress = new FileInfo(preparedFilePath);
+                    using (FileStream originalFileStream = fileToCompress.OpenRead())
+                    {
+                        if ((File.GetAttributes(fileToCompress.FullName) &
+                            FileAttributes.Hidden) != FileAttributes.Hidden & fileToCompress.Extension != ".gz")
+                        {
+                            using (FileStream compressedFileStream = File.Create(fileToCompress.FullName + ".gz"))
                             {
-                                originalFileStream.CopyTo(compressionStream);
+                                using (GZipStream compressionStream = new GZipStream(compressedFileStream,
+                                    CompressionMode.Compress))
+                                {
+                                    originalFileStream.CopyTo(compressionStream);
+                                }
                             }
                         }
                     }
-                }
 
-                File.Delete(preparedFilePath);
-                Thread.Sleep(500);
+                    File.Delete(preparedFilePath);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"{ex.Message}");
+                }
             }
-            finally
-            {
-                //Call the ReleaseMutex method to unblock so that other threads
-                //that are trying to gain ownership of the mutex.  
-                mutex.ReleaseMutex();
-            }
+            
         }
 
     }

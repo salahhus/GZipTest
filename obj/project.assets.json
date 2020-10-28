@@ -1788,11 +1788,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj",
+      "projectUniqueName": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj",
       "projectName": "GZipTest",
-      "projectPath": "F:\\MyProjects\\VEEAM\\GZipTest\\GZipTest.csproj",
+      "projectPath": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\GZipTest.csproj",
       "packagesPath": "C:\\Users\\Commod\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\VEEAM\\GZipTest\\obj\\",
+      "outputPath": "C:\\Users\\Commod\\Desktop\\GZipTest-master\\GZipTest-master\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Commod\\AppData\\Roaming\\NuGet\\NuGet.Config",

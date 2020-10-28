@@ -10,7 +10,11 @@ namespace GZipTest
 {
     public class DecompressService : IDecompressService
     {
-        private readonly Mutex mutex = new Mutex();
+        /// <summary>
+        /// object using for locking multithreads
+        /// </summary>
+        private readonly Object obj = new object();
+
         /// <summary>
         /// Combine multiple files into  single  file than save it 
         /// by param outputFilePath
@@ -19,34 +23,43 @@ namespace GZipTest
         /// <param name="outputFilePath"></param>
         public void CombineMultipleFilesIntoSingleFile(string inputDirectoryPath, string outputFilePath)
         {
-            //  decompress compressed files
-            string directoryPath = Path.GetFileNameWithoutExtension(inputDirectoryPath);
-            string tmpPath = Path.GetDirectoryName(inputDirectoryPath);
-
-            DirectoryInfo directorySelected = new DirectoryInfo(tmpPath +"\\"+directoryPath);
-            foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
+            try
             {
-                Thread thread = new Thread(() => Decompress(fileToDecompress));
-                thread.Start();
-                Thread.Sleep(500);
-            }
+                //  decompress compressed files
+                string directoryPath = Path.GetFileNameWithoutExtension(inputDirectoryPath);
+                string tmpPath = Path.GetDirectoryName(inputDirectoryPath);
 
-            // combine decompressed  file into one file
-            string[] inputFilePaths = Directory.GetFiles(tmpPath + "\\" + directoryPath);
-            Console.WriteLine("Number of files: {0}.", inputFilePaths.Length);
-            using (var outputStream = File.Create(outputFilePath))
-            {
-                foreach (var inputFilePath in inputFilePaths)
+                Console.WriteLine("In progress decompressing..");
+
+                DirectoryInfo directorySelected = new DirectoryInfo(tmpPath + "\\" + directoryPath);
+                foreach (FileInfo fileToDecompress in directorySelected.GetFiles("*.gz"))
                 {
-                    if (!inputFilePath.EndsWith(".gz"))
+                    Thread thread = new Thread(() => Decompress(fileToDecompress));
+                    thread.Start();
+                    Thread.Sleep(500);
+                }
+
+                // combine decompressed  file into one file
+                string[] inputFilePaths = Directory.GetFiles(tmpPath + "\\" + directoryPath);
+                Console.WriteLine("Number of files: {0}.", inputFilePaths.Length);
+                using (var outputStream = File.Create(outputFilePath))
+                {
+                    foreach (var inputFilePath in inputFilePaths)
                     {
-                        using (var inputStream = File.OpenRead(inputFilePath))
+                        if (!inputFilePath.EndsWith(".gz"))
                         {
-                            inputStream.CopyTo(outputStream);
+                            using (var inputStream = File.OpenRead(inputFilePath))
+                            {
+                                inputStream.CopyTo(outputStream);
+                            }
+                            File.Delete(inputFilePath);
                         }
-                        File.Delete(inputFilePath);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
             }
         }
 
@@ -56,30 +69,28 @@ namespace GZipTest
         /// <param name="fileToDecompress"></param>
         public void Decompress(FileInfo fileToDecompress)
         {
-            try
+            lock (obj)
             {
-                mutex.WaitOne();
-                using (FileStream originalFileStream = fileToDecompress.OpenRead())
+                try
                 {
-                    string currentFileName = fileToDecompress.FullName;
-                    string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
-
-                    using (FileStream decompressedFileStream = File.Create(newFileName))
+                    using (FileStream originalFileStream = fileToDecompress.OpenRead())
                     {
-                        using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                        string currentFileName = fileToDecompress.FullName;
+                        string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+                        using (FileStream decompressedFileStream = File.Create(newFileName))
                         {
-                            decompressionStream.CopyTo(decompressedFileStream);
-                            Console.WriteLine($"Decompressed: {fileToDecompress.Name}");
+                            using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                            {
+                                decompressionStream.CopyTo(decompressedFileStream);
+                            }
                         }
                     }
                 }
-                Thread.Sleep(500);
-            }
-            finally
-            {
-                //Call the ReleaseMutex method to unblock so that other threads
-                //that are trying to gain ownership of the mutex.  
-                mutex.ReleaseMutex();
+                catch (Exception ex)
+                {
+                    throw new Exception($"{ex.Message}");
+                }
             }
         }
     }
